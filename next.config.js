@@ -14,6 +14,9 @@ const nextConfig = {
         assetPrefix: "/seo/",
       }
     : {}),
+  experimental: {
+    cpus: 1,
+  },
   webpack: (config, { isServer }) => {
     config.cache = false;
     config.parallelism = 1;
