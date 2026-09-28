@@ -55,6 +55,121 @@ import type {
   Task,
 } from '@/lib/types';
 
+function generateLocalAnalysis(
+  product: Product | null,
+  keywords: Keyword[],
+  competitors: Competitor[],
+  seoAnalysis: SeoAnalysis | null
+): string {
+  if (!product) return '상품 정보가 없습니다.';
+
+  const top10 = competitors.slice(0, 10);
+  const avgPrice = top10.length > 0 ? Math.round(top10.reduce((s, c) => s + (c.price || 0), 0) / top10.length) : 0;
+  const avgReviews = top10.length > 0 ? Math.round(top10.reduce((s, c) => s + (c.review_count || 0), 0) / top10.length) : 0;
+  const avgRating = top10.length > 0 ? (top10.reduce((s, c) => s + (c.rating || 0), 0) / top10.length).toFixed(1) : '0';
+
+  const bottlenecks: string[] = [];
+  const strengths: string[] = [];
+  const tasks: string[] = [];
+
+  // 리뷰 분석
+  if (avgReviews > 0 && product.review_count < avgReviews * 0.5) {
+    bottlenecks.push(`1. 리뷰 경쟁력 부족\n   내 상품: ${product.review_count}개 / TOP10 평균: ${avgReviews}개\n   → 리뷰 수가 경쟁상품의 절반 미만입니다.`);
+    tasks.push('[중요] 리뷰 수 증가를 위한 고객 응대 및 리뷰 요청 활동');
+  } else if (avgReviews > 0 && product.review_count < avgReviews * 0.8) {
+    bottlenecks.push(`1. 리뷰 경쟁력\n   내 상품: ${product.review_count}개 / TOP10 평균: ${avgReviews}개\n   → 경쟁상품 평균의 80% 미만입니다.`);
+    tasks.push('[보통] 리뷰 수 증가를 위한 고객 응대 개선');
+  }
+
+  // 가격 분석
+  if (product.price && avgPrice && product.price > avgPrice * 1.1) {
+    const diff = Math.round(((product.price - avgPrice) / avgPrice) * 100);
+    bottlenecks.push(`2. 가격 경쟁력\n   내 상품: ${product.price.toLocaleString()}원 / TOP10 평균: ${avgPrice.toLocaleString()}원\n   → 평균보다 ${diff}% 높습니다.`);
+    tasks.push('[중요] 경쟁상품 가격 대비 가격 경쟁력 검토');
+  } else if (product.price && avgPrice && product.price < avgPrice * 0.9) {
+    strengths.push(`가격 경쟁력 (TOP10 평균보다 ${Math.round(((avgPrice - product.price) / avgPrice) * 100)}% 저렴)`);
+  }
+
+  // 평점 분석
+  if (product.rating < 4.0) {
+    bottlenecks.push(`3. 평점\n   내 상품: ${product.rating}점 / TOP10 평균: ${avgRating}점\n   → 평점이 낮아 검색 노출에 불리할 수 있습니다.`);
+    tasks.push('[중요] 평점 개선을 위한 제품 품질 및 리뷰 관리');
+  } else if (product.rating >= 4.5) {
+    strengths.push(`평점 ${product.rating}점 (우수)`);
+  }
+
+  // 배송 분석
+  const freeShippingCount = top10.filter((c) => /무료/.test(c.shipping || '')).length;
+  if (!/무료/.test(product.shipping || '') && freeShippingCount >= 5) {
+    bottlenecks.push(`4. 배송\n   내 상품: ${product.shipping || '정보 없음'} / TOP10 중 ${freeShippingCount}개 무료배송\n   → 무료배송 경쟁상품이 다수입니다.`);
+    tasks.push('[보통] 무료배송 또는 배송비 조건 검토');
+  } else if (/무료/.test(product.shipping || '')) {
+    strengths.push('무료배송');
+  }
+
+  // SEO 점수 분석
+  if (seoAnalysis) {
+    if (seoAnalysis.title_score < 70) {
+      bottlenecks.push(`5. 상품명 최적화\n   SEO 상품명 점수: ${seoAnalysis.title_score}/100\n   → 상품명에 검색 키워드 구성이 부족할 수 있습니다.`);
+      tasks.push('[중요] 상품명 키워드 구성 점검');
+    } else if (seoAnalysis.title_score >= 80) {
+      strengths.push('상품명 최적화 양호');
+    }
+
+    if (seoAnalysis.attribute_score < 60) {
+      bottlenecks.push(`6. 상품 속성\n   SEO 속성 점수: ${seoAnalysis.attribute_score}/100\n   → 필수 속성 중 미등록 항목이 있을 수 있습니다.`);
+      tasks.push('[보통] 미등록 상품속성 확인 및 입력');
+    }
+
+    if (seoAnalysis.completeness_score < 70) {
+      tasks.push('[보통] 상품정보 입력 완성도 개선');
+    }
+
+    if (seoAnalysis.category_score < 70) {
+      tasks.push('[보통] 카테고리 적합성 확인');
+    }
+  }
+
+  // 브랜드
+  if (product.brand) {
+    strengths.push(`브랜드 인지도 (${product.brand})`);
+  }
+
+  // 키워드가 없는 경우
+  if (keywords.length === 0) {
+    bottlenecks.push('7. 키워드 추적\n   등록된 추적 키워드가 없습니다.');
+    tasks.push('[중요] 검색 키워드 등록 및 순위 추적 시작');
+  }
+
+  // 최소 3개 작업 보장
+  while (tasks.length < 3) {
+    tasks.push('[보통] 경쟁상품 동향 지속 모니터링');
+  }
+
+  const bottlenecksText = bottlenecks.length > 0
+    ? bottlenecks.join('\n\n')
+    : '특별한 병목 요소가 발견되지 않았습니다. 현재 상태를 잘 유지하고 있습니다.';
+  const strengthsText = strengths.length > 0
+    ? strengths.join('\n')
+    : '분석된 강점이 없습니다. 경쟁상품 데이터를 추가로 등록하면 더 정확한 분석이 가능합니다.';
+  const tasksText = tasks.slice(0, 5).map((t, i) => `${i + 1}. ${t}`).join('\n');
+
+  return `현재 가장 큰 병목
+
+${bottlenecksText}
+
+현재 강점
+
+${strengthsText}
+
+오늘 해야 할 일 (최대 5개)
+
+${tasksText}
+
+---
+본 분석은 자체 진단 기준에 의한 참고자료입니다. 네이버 공식 점수가 아니며, 인과관계를 단정하지 않습니다. 합법적인 SEO 개선 방법만 제안합니다.`;
+}
+
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -166,24 +281,9 @@ export default function ProductDetailPage() {
     setAiError(null);
     setAiResult(null);
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ai-analysis`;
-      const res = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          product,
-          keywords: keywords.map((k) => k.keyword),
-          competitors: competitors.slice(0, 10),
-          seoAnalysis,
-        }),
-      });
-      if (!res.ok) throw new Error(`분석 요청 실패 (${res.status})`);
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setAiResult(data.analysis || data.message || '분석이 완료되었습니다.');
+      const analysis = generateLocalAnalysis(product, keywords, competitors, seoAnalysis);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      setAiResult(analysis);
     } catch (err) {
       setAiError(err instanceof Error ? err.message : 'AI 분석 중 오류가 발생했습니다.');
     } finally {
