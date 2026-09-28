@@ -9,6 +9,12 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect');
+    if (redirect) {
+      router.replace(redirect);
+      return;
+    }
     if (!loading) {
       router.replace(user ? '/dashboard' : '/login');
     }
