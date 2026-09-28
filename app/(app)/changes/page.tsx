@@ -155,7 +155,7 @@ export default function ChangesPage() {
                         </div>
                         {change.memo && <div className="text-xs text-gray-400 mt-1">{change.memo}</div>}
                         {product && (
-                          <Link href={`/products/${product.id}`} className="text-xs text-sky-600 hover:text-sky-700 mt-1 inline-block">
+                          <Link href={`/products/detail/?id=${product.id}`} className="text-xs text-sky-600 hover:text-sky-700 mt-1 inline-block">
                             {product.product_name}
                           </Link>
                         )}

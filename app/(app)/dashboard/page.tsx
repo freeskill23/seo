@@ -224,7 +224,7 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-2">
                 {productsNeedingImprovement.map(({ product, score }) => (
-                  <Link key={product.id} href={`/products/${product.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Link key={product.id} href={`/products/detail/?id=${product.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-gray-900 truncate">{product.product_name}</div>
                       <div className="text-xs text-gray-500">{product.primary_keyword}</div>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                   const seo = latestSeoByProduct.get(product.id);
                   const rank = latestRanksByKeyword.get(keywords.find((k) => k.product_id === product.id)?.id || '');
                   return (
-                    <Link key={product.id} href={`/products/${product.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Link key={product.id} href={`/products/detail/?id=${product.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-900 truncate">{product.product_name}</div>
                         <div className="flex items-center gap-2 mt-1">

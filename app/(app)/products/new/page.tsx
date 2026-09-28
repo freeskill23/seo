@@ -98,7 +98,7 @@ export default function NewProductPage() {
 
     await refreshSeoScore(product.id);
 
-    router.push(`/products/${product.id}`);
+    router.push(`/products/detail/?id=${product.id}`);
   };
 
   return (

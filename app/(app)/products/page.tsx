@@ -150,7 +150,7 @@ export default function ProductsPage() {
                     return (
                       <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
-                          <Link href={`/products/${product.id}`} className="flex items-center gap-3">
+                          <Link href={`/products/detail/?id=${product.id}`} className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                               {product.image_url ? (
                                 <img src={product.image_url} alt="" className="w-full h-full object-cover" />
@@ -191,7 +191,7 @@ export default function ProductsPage() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Link href={`/products/${product.id}/edit`}>
+                            <Link href={`/products/edit/?id=${product.id}`}>
                               <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <Pencil className="w-3.5 h-3.5" />
                               </Button>

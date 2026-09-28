@@ -132,7 +132,7 @@ export default function SeoPage() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <Link href={`/products/${product.id}`}>
+                        <Link href={`/products/detail/?id=${product.id}`}>
                           <CardTitle className="text-sm hover:text-sky-600 cursor-pointer truncate">{product.product_name}</CardTitle>
                         </Link>
                         <div className="flex items-center gap-2 mt-2">
@@ -160,7 +160,7 @@ export default function SeoPage() {
                         </div>
                       </div>
                     ))}
-                    <Link href={`/products/${product.id}`} className="flex items-center justify-center gap-1 text-xs text-sky-600 hover:text-sky-700 pt-2">
+                    <Link href={`/products/detail/?id=${product.id}`} className="flex items-center justify-center gap-1 text-xs text-sky-600 hover:text-sky-700 pt-2">
                       상세 분석 보기 <ArrowRight className="w-3 h-3" />
                     </Link>
                   </CardContent>
